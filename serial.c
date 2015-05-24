@@ -6,9 +6,9 @@
 #include <termios.h> /* POSIX terminal control definitions */
 
 int number,n;
-char * device = "/dev/pts/11";
+char * device = "/dev/ttyUSB0"; // "/dev/pts/11";
 void main(void){
-	open_port("message", 7);
+	open_port("message", 1);
 }
 
 int open_port(char * message, int messageLength)
