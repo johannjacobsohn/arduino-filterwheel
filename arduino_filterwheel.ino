@@ -9,7 +9,6 @@ const int setting2Pin = 11;
 const int setting3Pin = 10;
 const int setting4Pin =  9;
 
-
 const int RES = 200;  // RESOLUTION per full revolve
 const int DIR = 2;    // DIRECTION PIN
 const int STEP = 3;   // STEPPING PIN
@@ -18,7 +17,6 @@ const int MS2 = 5;    //
 const int SLP = 6;    //
 const int ENABLE = 7; //
 const int RST = 8;    //
-
 
 // AH_EasyDriver stepper(RES, DIR, STEP, MS1, MS2, SLP);
 AH_EasyDriver stepper(RES, DIR, STEP, MS1, MS2, SLP, ENABLE, RST);
@@ -35,111 +33,111 @@ int oldbuttonState = -1;
 int oldsetting = -1;
 
 void setup() {
-  Serial.begin(9600);
+	Serial.begin(9600);
 
-  // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
+	// initialize the LED pin as an output:
+	pinMode(ledPin, OUTPUT);
 
-  // initialize the pushbutton pin as an input:
-  pinMode(buttonPin, INPUT);
-  pinMode(setting1Pin, INPUT);
-  pinMode(setting2Pin, INPUT);
-  pinMode(setting3Pin, INPUT);
-  pinMode(setting4Pin, INPUT);
+	// initialize the pushbutton pin as an input:
+	pinMode(buttonPin, INPUT);
+	pinMode(setting1Pin, INPUT);
+	pinMode(setting2Pin, INPUT);
+	pinMode(setting3Pin, INPUT);
+	pinMode(setting4Pin, INPUT);
 
-  stepper.enableDriver();
-  stepper.resetDriver();
+	stepper.enableDriver();
+	stepper.resetDriver();
 
-  //	int rpm = stepper.getMaxSpeedRPM();
-  //	stepper.setSpeedRPM(rpm);          // RPM , rotations per minute
-  stepper.setSpeedRPM(100);          // RPM , rotations per minute
-
+	//	int rpm = stepper.getMaxSpeedRPM();
+	//	stepper.setSpeedRPM(rpm);          // RPM , rotations per minute
+	stepper.setSpeedRPM(100);          // RPM , rotations per minute
 }
 
 /**
- * 
- * 
+ *
+ *
  */
 int get_button_setting(){
-  int setting = 0;
-  if(digitalRead(setting1Pin) == HIGH){
-    setting = 1;
-  }
-  if(digitalRead(setting2Pin) == HIGH){
-    setting = 2;
-  }
-  if(digitalRead(setting3Pin) == HIGH){
-    setting = 3;
-  }
-  if(digitalRead(setting4Pin) == HIGH){
-    setting = 4;
-  }
+	int setting = 0;
+	if(digitalRead(setting1Pin) == HIGH){
+		setting = 1;
+	}
+	if(digitalRead(setting2Pin) == HIGH){
+		setting = 2;
+	}
+	if(digitalRead(setting3Pin) == HIGH){
+		setting = 3;
+	}
+	if(digitalRead(setting4Pin) == HIGH){
+		setting = 4;
+	}
 
-  return setting;
+	return setting;
 }
 
 
 /**
- * 
- * 
+ *
+ *
  */
 int calibrate(){
-  stepper.sleepOFF();
+	stepper.sleepOFF();
 
-  while (1){
-    if(digitalRead(buttonPin) == HIGH) break;
-    stepper.rotate(5);
-  }
+	while (1){
+		if(digitalRead(buttonPin) == HIGH) break;
+		stepper.rotate(5);
+	}
 
-  stepper.sleepON();
-  return 1;
+	stepper.sleepON();
+	return 1;
 }
 
 void loop() {
-  int diffToGo;
-  int newDeg = 0;
-  int i;
+	int diffToGo;
+	int newDeg = 0;
+	int i;
 
-  if(calibrated == 0){
-    calibrated = calibrate();
-  }
-  
-  /*
-    FIXME: document who overrides who
-  */
-  int buttonState = get_button_setting();
-  if(buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState){ // eg. button has been switched
-    setting = buttonState;
-    oldbuttonState = buttonState;
-  }
+	if(calibrated == 0){
+		calibrated = calibrate();
+	}
 
-  // check to see if there is any new command on the serial port waiting
-  if (Serial.available()) {
-    int ser = Serial.read();
-    if(ser > 0 && ser < 5) setting = ser;
-  }
+	/*
+	FIXME: document who overrides who
+	*/
+	int buttonState = get_button_setting();
+	if(buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState){ // eg. button has been switched
+		setting = buttonState;
+		oldbuttonState = buttonState;
+	}
 
-      digitalWrite(ledPin, LOW);
-  if(setting != oldsetting){
-    oldsetting = setting;
+	// check to see if there is any new command on the serial port waiting
+	if (Serial.available()) {
+		int ser = Serial.read();
+		if(ser > 0 && ser < 5) setting = ser;
+	}
 
-    for (i=0; i<setting; i++){
-      digitalWrite(ledPin, HIGH);
-      delay(100);
-      digitalWrite(ledPin, LOW);
-      delay(100);
-    }
+	digitalWrite(ledPin, LOW);
+	if(setting != oldsetting){
+		oldsetting = setting;
 
-      digitalWrite(ledPin, HIGH);
-    // calculate distance that we have to rotate
-    newDeg = 90 * setting;
-    diffToGo = statusDeg - newDeg;
-    statusDeg = newDeg;
+		for (i=0; i<setting; i++){
+			digitalWrite(ledPin, HIGH);
+			delay(100);
+			digitalWrite(ledPin, LOW);
+			delay(100);
+		}
 
-    // do the actual rotation.
-    stepper.sleepOFF();
-    stepper.rotate(diffToGo);
-    stepper.sleepON();
-  }
+		digitalWrite(ledPin, HIGH);
+
+		// calculate distance that we have to rotate
+		newDeg = 90 * setting;
+		diffToGo = statusDeg - newDeg;
+		statusDeg = newDeg;
+
+		// do the actual rotation.
+		stepper.sleepOFF();
+		stepper.rotate(diffToGo);
+		stepper.sleepON();
+	}
 }
 
