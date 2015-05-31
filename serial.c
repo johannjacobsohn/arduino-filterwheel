@@ -7,7 +7,7 @@
 	#include <errno.h>   /* Error number definitions */
 	#include <termios.h> /* POSIX terminal control definitions */
 
-	static char * device = "/dev/pts/9";
+	static char * device = "/dev/ttyUSB1";
 	static int fd; /* File descriptor for the port */
 #else
 	#include <windows.h>
@@ -66,7 +66,7 @@ int filterwheel_init()
 
 
 // position: o c
-int filterwheel_send(char position){
+int filterwheel_send(int position){
 	#ifdef POSIX
 		return write(fd, &position, 1);
 	#else
