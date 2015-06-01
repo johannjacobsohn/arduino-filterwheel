@@ -67,8 +67,9 @@ int filterwheel_init(char * device)
 
 // position: o c
 int filterwheel_send(int position){
+	int bytes_to_send = 1;
 	#ifdef POSIX
-		return write(fd, &position, 1);
+		return write(fd, &position, bytes_to_send);
 	#else
 		// Send specified text (remaining command line arguments)
 		DWORD bytes_written, total_bytes_written = 0;
