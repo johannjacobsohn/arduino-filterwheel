@@ -7,7 +7,7 @@
 	#include <errno.h>   /* Error number definitions */
 	#include <termios.h> /* POSIX terminal control definitions */
 
-	static char * device = "/dev/ttyUSB1";
+	static char * device = "/dev/ttyUSB0";
 	static int fd; /* File descriptor for the port */
 #else
 	#include <windows.h>
