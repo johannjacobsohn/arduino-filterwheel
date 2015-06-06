@@ -1,6 +1,5 @@
 #include "AH_EasyDriver.h"
 
-// constants won't change. They're used here to
 // set pin numbers:
 const int buttonPin = A0; //0;     // the number of the pushbutton pin
 const int ledPin =  13;      // the number of the LED pin
@@ -8,6 +7,8 @@ const int setting1Pin = 12;
 const int setting2Pin = 11;
 const int setting3Pin = 10;
 const int setting4Pin =  9;
+
+const int transl = 134/30;
 
 const int RES = 200;  // RESOLUTION per full revolve
 const int DIR = 2;    // DIRECTION PIN
@@ -31,6 +32,7 @@ int calibrated = 0;
 int statusDeg = 0;
 int oldbuttonState = -1;
 int oldsetting = -1;
+int hz = 440;
 
 void setup() {
 	Serial.begin(9600);
@@ -48,9 +50,10 @@ void setup() {
 	stepper.enableDriver();
 	stepper.resetDriver();
 
-	//	int rpm = stepper.getMaxSpeedRPM();
-	//	stepper.setSpeedRPM(rpm);          // RPM , rotations per minute
-	stepper.setSpeedRPM(100);          // RPM , rotations per minute
+	stepper.setMicrostepping(0);
+
+	stepper.setSpeedHz(hz);
+
 }
 
 /**
@@ -84,7 +87,7 @@ int calibrate(){
 	stepper.sleepOFF();
 
 	while (1){
-		if(digitalRead(buttonPin) == HIGH) break;
+		if( digitalRead(buttonPin) == LOW ) break;
 		stepper.rotate(5);
 	}
 
@@ -102,7 +105,7 @@ void loop() {
 	}
 
 	/*
-	FIXME: document who overrides who
+		FIXME: document who overrides who
 	*/
 	int buttonState = get_button_setting();
 	if(buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState){ // eg. button has been switched
@@ -110,13 +113,14 @@ void loop() {
 		oldbuttonState = buttonState;
 	}
 
+	// digitalWrite(ledPin, LOW);
 	// check to see if there is any new command on the serial port waiting
 	if (Serial.available()) {
 		int ser = Serial.read();
+		digitalWrite(ledPin, HIGH);
 		if(ser > 0 && ser < 5) setting = ser;
 	}
 
-	digitalWrite(ledPin, LOW);
 	if(setting != oldsetting){
 		oldsetting = setting;
 
@@ -130,14 +134,17 @@ void loop() {
 		digitalWrite(ledPin, HIGH);
 
 		// calculate distance that we have to rotate
-		newDeg = 90 * setting;
+		newDeg = 90 * (setting - 1);
 		diffToGo = statusDeg - newDeg;
 		statusDeg = newDeg;
 
 		// do the actual rotation.
 		stepper.sleepOFF();
-		stepper.rotate(diffToGo);
+		stepper.rotate(diffToGo * transl);
 		stepper.sleepON();
+
+		Serial.write("done");
+		digitalWrite(ledPin, LOW);
 	}
 }
 
