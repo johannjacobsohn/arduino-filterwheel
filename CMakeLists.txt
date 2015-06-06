@@ -46,5 +46,7 @@ else( ${UNIX} )
 endif( ${UNIX} )
 
 # executables
-add_executable(filterwheel-cli filterwheel.h ./serial/filterwheel.c filterwheel-cli.c)
+add_library( filterwheel filterwheel.h ./serial/filterwheel.c )
+add_executable(filterwheel-cli  filterwheel-cli.c)
+target_link_libraries( filterwheel-cli filterwheel )
 
