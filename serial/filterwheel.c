@@ -1,4 +1,5 @@
 #include <stdio.h>   /* Standard input/output definitions */
+#include "../filterwheel.h"
 
 #if defined(POSIX)
 	#include <string.h>  /* String function definitions */
@@ -14,7 +15,7 @@
 	static HANDLE hSerial;
 #endif
 
-int filterwheel_init()
+int filterwheel_init(void)
 {
 	#ifdef POSIX
 		fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -76,7 +77,7 @@ int filterwheel_send(int position){
 	#endif
 }
 
-int filterwheel_uninit(){
+int filterwheel_uninit(void){
 	#if defined(POSIX)
 		return close(fd);
 	#else
