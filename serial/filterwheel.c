@@ -8,14 +8,13 @@
 	#include <errno.h>   /* Error number definitions */
 	#include <termios.h> /* POSIX terminal control definitions */
 
-	static char * device = "/dev/ttyUSB0";
 	static int fd; /* File descriptor for the port */
 #else
 	#include <windows.h>
 	static HANDLE hSerial;
 #endif
 
-int filterwheel_init(void)
+int filterwheel_init(char * device)
 {
 	#ifdef POSIX
 		fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -28,7 +27,7 @@ int filterwheel_init(void)
 		// Open the highest available serial port number
 		fprintf(stderr, "Opening serial port...");
 		hSerial = CreateFile(
-					"\\\\.\\COM22", GENERIC_READ|GENERIC_WRITE, 0, NULL,
+					device, GENERIC_READ|GENERIC_WRITE, 0, NULL,
 					OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
 		if (hSerial == INVALID_HANDLE_VALUE){
 				fprintf(stderr, "Error\n");
