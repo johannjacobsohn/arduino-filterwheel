@@ -45,8 +45,10 @@ else( ${UNIX} )
 	add_definitions(-DWIN)
 endif( ${UNIX} )
 
-# executables
+# create lib
 add_library( filterwheel filterwheel.h ./serial/filterwheel.c )
+
+# create executables
 add_executable(filterwheel-cli  filterwheel-cli.c)
 target_link_libraries( filterwheel-cli filterwheel )
 
