@@ -1,26 +1,24 @@
-#include "AH_EasyDriver.h"
+const int zeroPosition = 1;
 
 // set pin numbers:
-const int buttonPin = A0; //0;     // the number of the pushbutton pin
+const int buttonPin = 8; //0;     // the number of the pushbutton pin
 const int ledPin =  13;      // the number of the LED pin
 const int setting1Pin = 12;
 const int setting2Pin = 11;
 const int setting3Pin = 10;
 const int setting4Pin =  9;
 
-const int transl = 134/30;
-
+const int transl_m = 45; // 134*10/30;
 const int RES = 200;  // RESOLUTION per full revolve
-const int DIR = 2;    // DIRECTION PIN
-const int STEP = 3;   // STEPPING PIN
-const int MS1 = 4;    //
-const int MS2 = 5;    //
-const int SLP = 6;    //
-const int ENABLE = 7; //
-const int RST = 8;    //
+const int QUARTREVOLV = RES/4;
 
-// AH_EasyDriver stepper(RES, DIR, STEP, MS1, MS2, SLP);
-AH_EasyDriver stepper(RES, DIR, STEP, MS1, MS2, SLP, ENABLE, RST);
+const int STEP = 6;   // STEPPING PIN
+const int DIR = 5;    // DIRECTION PIN
+const int SLP = 4;    //
+const int RST = 3;    //
+const int ENABLE = 2; //
+//const int MS1 = 4;    //
+//const int MS2 = 5;    //
 
 int buttonState = 0;         // variable for reading the pushbutton status
 int setting1PinState = 0;         // variable for reading the pushbutton status
@@ -32,7 +30,24 @@ int calibrated = 0;
 int statusDeg = 0;
 int oldbuttonState = -1;
 int oldsetting = -1;
-int hz = 440;
+
+int enableDriver(){
+    digitalWrite(ENABLE, LOW);
+}
+int disableDriver(){
+    digitalWrite(ENABLE, HIGH);
+}
+
+int sleepON(){
+    digitalWrite(SLP, LOW);
+}
+int sleepOFF(){
+    digitalWrite(SLP, HIGH);
+}
+
+int resetDriver(){
+    digitalWrite(RST, HIGH);
+}
 
 void setup() {
 	Serial.begin(9600);
@@ -47,14 +62,55 @@ void setup() {
 	pinMode(setting3Pin, INPUT);
 	pinMode(setting4Pin, INPUT);
 
-	stepper.enableDriver();
-	stepper.resetDriver();
+	pinMode(DIR,    OUTPUT);
+	pinMode(STEP,   OUTPUT);
+//	pinMode(MS1,    OUTPUT);
+//	pinMode(MS2,    OUTPUT);
+	pinMode(SLP,    OUTPUT);
+	pinMode(ENABLE, OUTPUT);
+	pinMode(RST,    OUTPUT);
 
-	stepper.setMicrostepping(0);
-
-	stepper.setSpeedHz(hz);
-
+	enableDriver();
+	resetDriver();
 }
+
+int rotate(int steps){  
+  int sleep_us = 800;
+
+  char str[50];
+//  sprintf(str, "rotate by %i deg \n", deg);
+//  Serial.write(str);
+  
+  if(steps > 0){
+    digitalWrite(DIR, HIGH);
+    Serial.write("> forward\n");
+  } else {
+    steps = 0 - steps;
+    digitalWrite(DIR, LOW);
+    Serial.write("< backward\n");
+  }
+  delayMicroseconds(100*1000);
+
+  
+   int real_steps = steps * transl_m / 10;
+  
+  sprintf(str, "now rotate by %i, was %i \n", real_steps, steps);
+  Serial.write(str);
+  
+//  char str[50];
+//  sprintf(str, "ding dong %i, steps: %i, deg: %i \n",  degreeToSteps_m * transl_m, steps, deg);
+//  Serial.write(str);
+
+//return 1;
+  for(int i = 0; i < real_steps; i++){
+    // Trigger the motor to take one step.
+    digitalWrite(STEP, HIGH);
+    delayMicroseconds(sleep_us);
+    digitalWrite(STEP, LOW);
+    delayMicroseconds(sleep_us);
+  }
+}
+
 
 /**
  *
@@ -84,24 +140,26 @@ int get_button_setting(){
  *
  */
 int calibrate(){
-	stepper.sleepOFF();
+	sleepOFF();
 
 	while (1){
+		Serial.write("looking for 0-Position\n");
 		if( digitalRead(buttonPin) == LOW ) break;
-		stepper.rotate(5);
+		rotate(2);
 	}
 
-	stepper.sleepON();
+	sleepON();
 	return 1;
 }
 
 void loop() {
 	int diffToGo;
-	int newDeg = 0;
+	int newDeg = 0.;
 	int i;
 
 	if(calibrated == 0){
 		calibrated = calibrate();
+		Serial.write("calibrated\n");
 	}
 
 	/*
@@ -111,12 +169,13 @@ void loop() {
 	if(buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState){ // eg. button has been switched
 		setting = buttonState;
 		oldbuttonState = buttonState;
+		Serial.write("button state changed\n");
 	}
 
-	// digitalWrite(ledPin, LOW);
 	// check to see if there is any new command on the serial port waiting
 	if (Serial.available()) {
 		int ser = Serial.read();
+
 		digitalWrite(ledPin, HIGH);
 		if(ser > 0 && ser < 5) setting = ser;
 	}
@@ -134,16 +193,19 @@ void loop() {
 		digitalWrite(ledPin, HIGH);
 
 		// calculate distance that we have to rotate
-		newDeg = 90 * (setting - 1);
+		newDeg = QUARTREVOLV * (setting - 1) + zeroPosition;
 		diffToGo = statusDeg - newDeg;
 		statusDeg = newDeg;
-
+ // char str[50];
+//  sprintf(str, "goto: transl: %i, newDeg %i, diffToGo: %i, statusDeg: %i \n", transl_m, newDeg, diffToGo, statusDeg);
+//  Serial.write(str);
+  
 		// do the actual rotation.
-		stepper.sleepOFF();
-		stepper.rotate(diffToGo * transl);
-		stepper.sleepON();
+		sleepOFF();
+		rotate(diffToGo);
+		sleepON();
 
-		Serial.write("done");
+		Serial.write("done\n");
 		digitalWrite(ledPin, LOW);
 	}
 }
