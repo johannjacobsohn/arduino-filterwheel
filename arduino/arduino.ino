@@ -8,6 +8,10 @@ const int setting2Pin = 11;
 const int setting3Pin = 10;
 const int setting4Pin =  9;
 
+// set orientation
+int orientation_forward = LOW;
+int orientation_backward = HIGH;
+
 const int transl_m = 45; // 134*10/30;
 const int RES = 200;  // RESOLUTION per full revolve
 const int QUARTREVOLV = RES/4;
@@ -80,15 +84,15 @@ int rotate(int steps){
   int sleep_us = 800;
 
   char str[50];
-  sprintf(str, "rotate by %i deg \n", deg);
+  sprintf(str, "rotate by %i steps \n", steps);
   Serial.write(str);
   
   if(steps > 0){
-    digitalWrite(DIR, HIGH);
+    digitalWrite(DIR, orientation_forward);
     Serial.write("> forward\n");
   } else {
     steps = 0 - steps;
-    digitalWrite(DIR, LOW);
+    digitalWrite(DIR, orientation_backward);
     Serial.write("< backward\n");
   }
   delayMicroseconds(100*1000);
@@ -146,7 +150,7 @@ int calibrate(){
 
 	while (1){
 		Serial.write("looking for 0-Position\n");
-		if( digitalRead(buttonPin) == LOW ) break;
+		if( digitalRead(buttonPin) == HIGH ) break;
 		rotate(2);
 	}
 
@@ -158,8 +162,6 @@ void loop() {
 	int diffToGo;
 	int newDeg = 0.;
 	int i;
-
-		Serial.write("start... \n");
 
 	if(calibrated == 0){
 		calibrated = calibrate();
