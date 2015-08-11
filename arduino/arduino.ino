@@ -30,11 +30,11 @@ int setting1PinState = 0;         // variable for reading the pushbutton status
 int setting2PinState = 0;         // variable for reading the pushbutton status
 int setting3PinState = 0;         // variable for reading the pushbutton status
 int setting4PinState = 0;         // variable for reading the pushbutton status
-int setting = 0;
+int setting = 1;
 int calibrated = 0;
 int statusDeg = 0;
 int oldbuttonState = -1;
-int oldsetting = -1;
+int oldsetting = 0;
 
 int enableDriver(){
     digitalWrite(ENABLE, LOW);
