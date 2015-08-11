@@ -2,7 +2,7 @@
 #include "filterwheel.h"
 
 #if defined(POSIX)
-	static char * device = "/dev/ttyUSB0";
+	static char * device = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AI02PNA1-if00-port0";
 #else
 	static char * device = "\\\\.\\COM22";
 #endif
