@@ -19,20 +19,6 @@ int filterwheel_init(char *device)
 #ifdef POSIX
 	fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
 
-	struct termios settings;
-	tcgetattr(fd, &settings);
-
-	cfsetospeed(&settings, B9600); /* baud rate */
-	settings.c_cflag &= ~PARENB; /* no parity */
-	settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
-	settings.c_cflag &= ~CSIZE;
-	settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
-	settings.c_lflag = ICANON; /* canonical mode */
-	settings.c_oflag &= ~OPOST; /* raw output */
-
-	tcsetattr(fd, TCSANOW, &settings); /* apply the settings */
-	tcflush(fd, TCOFLUSH);
-
 	return fd == -1 ? 1 : 0;
 #else
 	// Declare variables and structures
@@ -80,8 +66,20 @@ int filterwheel_init(char *device)
 int filterwheel_send(int position)
 {
 	int bytes_to_send = 1;
+	char buffer[4];
 #ifdef POSIX
-	return write(fd, &position, bytes_to_send);
+	write(fd, &position, bytes_to_send);
+	while(1){
+		read(fd, buffer, 4);
+
+		if(buffer[0] == 'd'
+		&& buffer[1] == 'o'
+		&& buffer[2] == 'n'
+		&& buffer[3] == 'e'){
+			break;
+		}
+	}
+	return 0;
 #else
 	// Send specified text (remaining command line arguments)
 	DWORD bytes_written, total_bytes_written = 0;
