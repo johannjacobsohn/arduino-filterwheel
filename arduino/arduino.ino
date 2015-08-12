@@ -1,7 +1,7 @@
 const int zeroPosition = 1;
 
 // set pin numbers:
-const int buttonPin = 8;	//0;     // the number of the pushbutton pin
+const int buttonPin = 8;	// the number of the pushbutton pin
 const int ledPin = 13;		// the number of the LED pin
 const int setting1Pin = 12;
 const int setting2Pin = 11;
@@ -77,9 +77,9 @@ void setup()
 
 	pinMode(DIR, OUTPUT);
 	pinMode(STEP, OUTPUT);
-//      pinMode(MS1,    OUTPUT);
-//      pinMode(MS2,    OUTPUT);
-//      pinMode(MS3,    OUTPUT);
+//	pinMode(MS1, OUTPUT);
+//	pinMode(MS2, OUTPUT);
+//	pinMode(MS3, OUTPUT);
 	pinMode(SLP, OUTPUT);
 	pinMode(ENABLE, OUTPUT);
 	pinMode(RST, OUTPUT);
@@ -92,30 +92,25 @@ int rotate(int steps)
 {
 	int sleep_us = 800;
 
-	char str[50];
-	sprintf(str, "rotate by %i steps \n", steps);
-	Serial.write(str);
+//	char str[50];
+//	sprintf(str, "rotate by %i steps \n", steps);
+//	Serial.write(str);
 
 	if (steps > 0) {
 		digitalWrite(DIR, orientation_forward);
-		Serial.write("> forward\n");
+//		Serial.write("> forward\n");
 	} else {
 		steps = 0 - steps;
 		digitalWrite(DIR, orientation_backward);
-		Serial.write("< backward\n");
+//		Serial.write("< backward\n");
 	}
 	delayMicroseconds(100 * 1000);
 
 	int real_steps = steps * transl_m / 10;
 
-	sprintf(str, "now rotate by %i, was %i \n", real_steps, steps);
-	Serial.write(str);
+//	sprintf(str, "now rotate by %i, was %i \n", real_steps, steps);
+//	Serial.write(str);
 
-//  char str[50];
-//  sprintf(str, "ding dong %i, steps: %i, deg: %i \n",  degreeToSteps_m * transl_m, steps, deg);
-//  Serial.write(str);
-
-//return 1;
 	for (int i = 0; i < real_steps; i++) {
 		// Trigger the motor to take one step.
 		digitalWrite(STEP, HIGH);
@@ -157,7 +152,7 @@ int calibrate()
 	sleepOFF();
 
 	while (1) {
-		Serial.write("looking for 0-Position\n");
+//		Serial.write("looking for 0-Position\n");
 		if (digitalRead(buttonPin) == HIGH)
 			break;
 		rotate(2);
@@ -175,7 +170,7 @@ void loop()
 
 	if (calibrated == 0) {
 		calibrated = calibrate();
-		Serial.write("calibrated\n");
+//		Serial.write("calibrated\n");
 	}
 
 	/*
@@ -185,7 +180,7 @@ void loop()
 	if (buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState) {	// eg. button has been switched
 		setting = buttonState;
 		oldbuttonState = buttonState;
-		Serial.write("button state changed\n");
+//		Serial.write("button state changed\n");
 	}
 	// check to see if there is any new command on the serial port waiting
 	if (Serial.available()) {
@@ -213,9 +208,6 @@ void loop()
 		newDeg = QUARTREVOLV * (setting - 1) + zeroPosition;
 		diffToGo = statusDeg - newDeg;
 		statusDeg = newDeg;
-		// char str[50];
-//  sprintf(str, "goto: transl: %i, newDeg %i, diffToGo: %i, statusDeg: %i \n", transl_m, newDeg, diffToGo, statusDeg);
-//  Serial.write(str);
 
 		// do the actual rotation.
 		sleepOFF();
