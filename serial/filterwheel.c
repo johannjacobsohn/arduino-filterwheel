@@ -18,6 +18,21 @@ int filterwheel_init(char *device)
 {
 #ifdef POSIX
 	fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
+
+	struct termios settings;
+	tcgetattr(fd, &settings);
+
+	cfsetospeed(&settings, B9600); /* baud rate */
+	settings.c_cflag &= ~PARENB; /* no parity */
+	settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
+	settings.c_cflag &= ~CSIZE;
+	settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
+	settings.c_lflag = ICANON; /* canonical mode */
+	settings.c_oflag &= ~OPOST; /* raw output */
+
+	tcsetattr(fd, TCSANOW, &settings); /* apply the settings */
+	tcflush(fd, TCOFLUSH);
+
 	return fd == -1 ? 1 : 0;
 #else
 	// Declare variables and structures
