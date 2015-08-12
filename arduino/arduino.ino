@@ -77,9 +77,9 @@ void setup()
 
 	pinMode(DIR, OUTPUT);
 	pinMode(STEP, OUTPUT);
-//	pinMode(MS1, OUTPUT);
-//	pinMode(MS2, OUTPUT);
-//	pinMode(MS3, OUTPUT);
+	pinMode(MS1, OUTPUT);
+	pinMode(MS2, OUTPUT);
+	pinMode(MS3, OUTPUT);
 	pinMode(SLP, OUTPUT);
 	pinMode(ENABLE, OUTPUT);
 	pinMode(RST, OUTPUT);
@@ -92,24 +92,24 @@ int rotate(int steps)
 {
 	int sleep_us = 800;
 
-//	char str[50];
-//	sprintf(str, "rotate by %i steps \n", steps);
-//	Serial.write(str);
+	char str[50];
+	sprintf(str, "rotate by %i steps \n", steps);
+	Serial.write(str);
 
 	if (steps > 0) {
 		digitalWrite(DIR, orientation_forward);
-//		Serial.write("> forward\n");
+		Serial.write("> forward\n");
 	} else {
 		steps = 0 - steps;
 		digitalWrite(DIR, orientation_backward);
-//		Serial.write("< backward\n");
+		Serial.write("< backward\n");
 	}
 	delayMicroseconds(100 * 1000);
 
 	int real_steps = steps * transl_m / 10;
 
-//	sprintf(str, "now rotate by %i, was %i \n", real_steps, steps);
-//	Serial.write(str);
+	sprintf(str, "now rotate by %i, was %i \n", real_steps, steps);
+	Serial.write(str);
 
 	for (int i = 0; i < real_steps; i++) {
 		// Trigger the motor to take one step.
@@ -152,7 +152,7 @@ int calibrate()
 	sleepOFF();
 
 	while (1) {
-//		Serial.write("looking for 0-Position\n");
+		Serial.write("looking for 0-Position\n");
 		if (digitalRead(buttonPin) == HIGH)
 			break;
 		rotate(2);
@@ -160,6 +160,11 @@ int calibrate()
 
 	sleepON();
 	return 1;
+}
+
+void done(){
+	Serial.write("done\n");
+	digitalWrite(ledPin, LOW);
 }
 
 void loop()
@@ -170,7 +175,7 @@ void loop()
 
 	if (calibrated == 0) {
 		calibrated = calibrate();
-//		Serial.write("calibrated\n");
+		Serial.write("calibrated\n");
 	}
 
 	/*
@@ -180,15 +185,17 @@ void loop()
 	if (buttonState > 0 && buttonState < 5 && buttonState != oldbuttonState) {	// eg. button has been switched
 		setting = buttonState;
 		oldbuttonState = buttonState;
-//		Serial.write("button state changed\n");
+		Serial.write("button state changed\n");
 	}
 	// check to see if there is any new command on the serial port waiting
 	if (Serial.available()) {
 		int ser = Serial.read();
 
 		digitalWrite(ledPin, HIGH);
-		if (ser > 0 && ser < 5)
+		if (setting != ser && ser > 0 && ser < 5)
 			setting = ser;
+		else
+			done();
 	}
 
 	if (setting != oldsetting) {
@@ -214,7 +221,6 @@ void loop()
 		rotate(diffToGo);
 		sleepON();
 
-		Serial.write("done\n");
-		digitalWrite(ledPin, LOW);
+		done();
 	}
 }
