@@ -14,10 +14,11 @@ static int fd;			/* File descriptor for the port */
 static HANDLE hSerial;
 #endif
 
-int filterwheel_init(char *device)
+int filterwheel_init(sConfigStruct * config)
 {
+	printf("init filterwheel %s\n", config->filterwheel_device);
 #ifdef POSIX
-	fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
+	fd = open(config->filterwheel_device, O_RDWR | O_NOCTTY | O_NDELAY);
 
 	return fd == -1 ? 1 : 0;
 #else
@@ -27,7 +28,7 @@ int filterwheel_init(char *device)
 
 	// Open the highest available serial port number
 	fprintf(stderr, "Opening serial port...");
-	hSerial = CreateFile(device, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+	hSerial = CreateFile(config->filterwheel_device, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 			     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hSerial == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "Error\n");
@@ -68,6 +69,7 @@ int filterwheel_send(int position)
 	int bytes_to_send = 1;
 	char buffer[4];
 #ifdef POSIX
+	printf("write to filterwheel: %i \n", position);
 	write(fd, &position, bytes_to_send);
 	while(1){
 		read(fd, buffer, 4);
@@ -87,7 +89,7 @@ int filterwheel_send(int position)
 #endif
 }
 
-int filterwheel_uninit(void)
+int filterwheel_uninit(sConfigStruct * config)
 {
 #if defined(POSIX)
 	return close(fd);
