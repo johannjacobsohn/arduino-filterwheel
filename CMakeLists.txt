@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 project( filterwheel )
 
 if (CMAKE_COMPILER_IS_GNUCC)
-	add_definitions ("-Werror") # tread every warning as an error
+	#~ add_definitions ("-Werror") # tread every warning as an error
 	add_definitions ("-pedantic")
-	add_definitions ("-pedantic-errors")
+	#~ add_definitions ("-pedantic-errors")
 	add_definitions ("-Wall")
 	add_definitions ("-Wundef")
 	add_definitions ("-Wextra")
@@ -49,8 +49,21 @@ else( ${UNIX} )
 	add_definitions(-DWIN)
 endif( ${UNIX} )
 
+
+# include common and log
+include_directories(
+	..
+)
+
 # create lib
-add_library( filterwheel filterwheel.h ./serial/filterwheel.c )
+option(MOCK_FILTERWHEEL "MOCK_FILTERWHEEL" OFF)
+
+if(MOCK_FILTERWHEEL)
+	MESSAGE( "=====MOCK_FILTERWHEEL=======")
+	add_library( filterwheel filterwheel.h ./mock/filterwheel.c )
+else( )
+	add_library( filterwheel filterwheel.h ./serial/filterwheel.c )
+endif()
 
 # create executables
 add_executable(filterwheel-cli  filterwheel-cli.c)
